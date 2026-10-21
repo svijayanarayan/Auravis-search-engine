@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Auralis logo">
+  <defs>
+    <linearGradient id="g" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C3AED"/>
+      <stop offset=".55" stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <rect x="3" y="3" width="58" height="58" rx="18" fill="#0F172A"/>
+  <path d="M17 43.5 28.8 18h6.5l11.7 25.5h-7l-2.3-5.7H26.1l-2.4 5.7H17Zm11.6-11.1h6.9L32.1 24l-3.5 8.4Z" fill="url(#g)"/>
+  <ellipse cx="32" cy="32" rx="22" ry="9.5" fill="none" stroke="#E0F2FE" stroke-width="2" opacity=".7" transform="rotate(-28 32 32)"/>
+  <circle cx="49.5" cy="22.3" r="3.1" fill="#22D3EE"/>
+</svg>

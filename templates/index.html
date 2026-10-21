@@ -1,0 +1,155 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AURAVIS — Personalized AI Search</title><link rel="icon" href="{{url_for('static',filename='auravis-logo.svg')}}"><link rel="stylesheet" href="{{url_for('static',filename='style.css')}}"></head>
+<body>
+<header class="site-header"><a class="brand" id="auravisBrand" href="/" title="Click for AURAVIS voice search"><span class="brand-logo-wrap"><img src="{{url_for('static',filename='auravis-logo.svg')}}" class="brand-logo" alt="AURAVIS"></span><span>AURAVIS</span></a>
+<nav class="nav"><a href="/">Search</a><a href="/dashboard" class="nav-pill">✦ AI Profile</a><a href="/logout">Logout</a><div class="theme-picker" title="Choose AURAVIS theme"><span class="theme-icon">🎨</span><select id="themeSelect" class="theme-select" aria-label="Choose theme"><option value="light">☀ Aurora Light</option><option value="midnight">☾ Midnight AI</option><option value="nebula">✦ Nebula</option></select></div></nav></header>
+<main class="container">
+<section class="hero"><div class="badge">✦ V5 • PERSONALIZED AI SEARCH</div><h1>Search that <span>understands you.</span></h1><p>AURAVIS combines smart text search with your previous searches, clicks, views and feedback to rank results around your interests.</p></section>
+
+<form method="post" class="search-shell" id="searchForm">
+  <div class="cats">
+    <label class="cat"><input type="radio" name="category" value="education" {%if category=="education"%}checked{%endif%}> 🎓 Education</label>
+    <label class="cat"><input type="radio" name="category" value="movies" {%if category=="movies"%}checked{%endif%}> 🎬 Movies</label>
+    <select name="language" id="language" class="lang"><option value="en" {%if language=='en'%}selected{%endif%}>English</option><option value="ta" {%if language=='ta'%}selected{%endif%}>தமிழ்</option><option value="hi" {%if language=='hi'%}selected{%endif%}>हिन्दी</option><option value="es" {%if language=='es'%}selected{%endif%}>Español</option></select>
+  </div>
+  <div class="intent-bar">
+    <span class="intent-label">🎯 Search Goal</span>
+    {% for g,icon in [('learn','📘'),('exam','📝'),('build','💻'),('research','🔬'),('explore','🧭')] %}
+    <label class="intent-chip"><input type="radio" name="goal" value="{{g}}" {% if goal==g %}checked{% endif %}><span>{{icon}} {{g|title}}</span></label>
+    {% endfor %}
+    <select name="level" class="level-select" title="Your current knowledge level"><option value="beginner" {%if level=='beginner'%}selected{%endif%}>Beginner</option><option value="intermediate" {%if level=='intermediate'%}selected{%endif%}>Intermediate</option><option value="advanced" {%if level=='advanced'%}selected{%endif%}>Advanced</option></select>
+  </div>
+  <div class="search-row"><div class="search-field"><span class="search-icon">⌕</span><input class="search-input" id="q" name="query" value="{{query}}" placeholder="Search Python, mathematics, comedy, space..." autocomplete="off" required><button type="button" class="voice" id="voice" title="Voice search">🎙</button></div><label class="image-btn image-btn-inline" title="Search using an image">🖼 <span>Image Search</span><input type="file" id="image" accept="image/*" hidden></label><button class="search-btn" id="go" type="submit">Search with AI <span>→</span></button></div>
+  <div class="quick-row"><span class="quick-label">Try:</span>
+  {%if category=="education"%}<button class="quick" type="button" data-q="Python">Python</button><button class="quick" type="button" data-q="Java">Java</button><button class="quick" type="button" data-q="C programming">C</button><button class="quick" type="button" data-q="Mathematics">Mathematics</button><button class="quick" type="button" data-q="Machine Learning">Machine Learning</button>
+  {%else%}<button class="quick" type="button" data-q="Comedy">Comedy</button><button class="quick" type="button" data-q="Space">Space</button><button class="quick" type="button" data-q="Sci-Fi">Sci-Fi</button><button class="quick" type="button" data-q="Interstellar">Interstellar</button>{%endif%}</div>
+  <div class="image-search image-status" id="imageStatus" hidden><img id="imagePreview" alt="Selected image"><span id="imageName"></span><button type="button" id="clearImage" class="clear-image" title="Remove image">×</button></div>
+  <div class="fusion-strip"><b>✦ Search Fusion</b><span id="fusionStatus">Combine text + voice + image in one search.</span><small>Offline Semantic-Lite is active for related concepts.</small></div>
+</form>
+
+{%if query%}<section id="results"><div class="section-head"><div><h2>AI-ranked results</h2><p>Results for <strong>"{{query}}"</strong> • {{goal|title}} mode • {{level|title}} level • query + preference + goal-aware ranking</p></div><span class="ai-note">Personalized for {{user.username}}</span></div>
+{%for item in results%}<article class="result">
+<div class="result-top"><div><div class="result-kicker">{%if category=="education"%}LEARNING RESOURCE{%else%}MOVIE DISCOVERY{%endif%}</div><h3 class="result-title">{{item.title}}</h3></div><div class="match">✦ {{item.score}}% AI match</div></div>
+<div class="meta">{%if category=="education"%}<span>🎓 {{item.topic}}</span><span>{{item.difficulty}}</span>{%else%}<span>🎬 {{item.genre}}</span><span>⭐ {{item.rating}}</span><span>🎥 {{item.director}}</span>{%endif%}</div>
+<p>{{item.description}}</p><div class="score-details"><span>Search relevance: {{item.search_score}}%</span><span>Your preference: {{item.preference_score}}%</span><span>Goal fit: {{item.goal_score|default(0)}}%</span></div><div class="why-box">💡 <b>Why this result?</b> {{item.why|default('Strong query match')}}</div>
+<div class="actions">{% if category=="education" %}<button type="button" class="action action-primary doc-open" data-doc-id="{{item.id}}">📄 Open Learning Document</button><a class="action action-light" href="{{url_for('content',category=category,content_id=item.id,q=query,language=language)}}">▶ Full lesson + video</a>{% else %}<a class="action action-primary external-action" href="{{url_for('content',category=category,content_id=item.id,q=query,language=language)}}">🎬 View Movie Details</a>{% endif %}<a class="action action-light" href="{{item.url}}" target="_blank" rel="noopener noreferrer">Open source ↗</a>
+<form method="post" action="{{url_for('feedback')}}"><input type="hidden" name="category" value="{{category}}"><input type="hidden" name="content_id" value="{{item.id}}"><input type="hidden" name="title" value="{{item.title}}"><input type="hidden" name="action" value="like"><button class="action action-light {%if prefs.get((category,item.id|string))=='like'%}active-like{%endif%}" type="submit">{%if prefs.get((category,item.id|string))=='like'%}♥ Liked{%else%}♡ Like{%endif%}</button></form>
+<form method="post" action="{{url_for('feedback')}}"><input type="hidden" name="category" value="{{category}}"><input type="hidden" name="content_id" value="{{item.id}}"><input type="hidden" name="title" value="{{item.title}}"><input type="hidden" name="action" value="not_interested"><button class="action action-light {%if prefs.get((category,item.id|string))=='not_interested'%}active-nope{%endif%}" type="submit">{%if prefs.get((category,item.id|string))=='not_interested'%}✓ Not interested{%else%}Not interested{%endif%}</button></form></div></article>
+{%else%}<div class="empty">No matching results in the selected AURAVIS database. Try Python, Java, C, Mathematics, Comedy, Space or Sci-Fi.</div>{%endfor%}</section>{%endif%}
+
+
+{% if query and category=="education" %}
+<aside id="learningDrawer" class="learning-drawer" aria-hidden="true">
+  <div class="learning-drawer-head"><div><small>📄 AURAVIS LOCAL DOCUMENT</small><h2 id="docTitle">Learning Document</h2></div><button type="button" id="docClose" class="doc-close" aria-label="Close document">×</button></div>
+  <div id="docBody" class="learning-drawer-body"><p>Select <b>Open Learning Document</b> on an education result.</p></div>
+  <div class="learning-drawer-foot">● AVAILABLE OFFLINE • Loaded from your local AURAVIS education data</div>
+</aside>
+<div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
+{% endif %}
+
+
+<section class="panel" style="margin-top:38px"><div class="section-head" style="margin-top:0"><div><h2>✦ Your AI preferences</h2><p>AURAVIS learns separately for Education and Movies.</p></div><a class="button" href="/dashboard">Open full profile →</a></div><div class="profile-grid">
+{%for cat in ["education","movies"]%}<div class="profile-card"><h3>{%if cat=="education"%}🎓 Education{%else%}🎬 Movies{%endif%}</h3><div class="profile-sub">{{profiles[cat].message}}</div>{%if profiles[cat].ready%}{%for key in profiles[cat].keywords[:5]%}<div class="keyword"><div class="keyword-line"><span>{{key.term}}</span><b>{{(key.score*100)|round|int}}%</b></div><div class="bar"><i style="width:{{(key.score*100)|round|int}}%"></i></div></div>{%endfor%}{%else%}<p class="profile-sub">Search and interact with more {{cat}} content to teach the AI.</p>{%endif%}</div>{%endfor%}</div></section>
+
+<section class="novelty-grid">
+  <div class="journey-card"><div class="section-head compact"><div><h2>🛤️ Search Journey</h2><p>AURAVIS connects your recent searches instead of treating each one separately.</p></div></div><div class="journey-line">{% for j in journey %}<a href="/?q={{j.query|urlencode}}&category={{j.category}}&goal={{goal}}&level={{level}}"><span>{{loop.index}}</span>{{j.query}}</a>{% if not loop.last %}<i>→</i>{% endif %}{% else %}<small>Start searching to build your learning journey.</small>{% endfor %}</div></div>
+  <div class="knowledge-card"><div class="section-head compact"><div><h2>🧠 Knowledge Map</h2><p>Your activity builds an adaptive topic profile.</p></div></div><div class="knowledge-list">{% for k in knowledge %}<span><b>{{k.topic}}</b><small>{{k.level}}</small></span>{% else %}<small>Explore education topics to build your map.</small>{% endfor %}</div></div>
+</section>
+<section class="offline-card"><div><b>⚡ Offline Core Ready</b><span id="networkState">Checking connection…</span></div><p>Core search, Search Fusion, Semantic-Lite, history, personalization, goal ranking and profiles run from local CSV + SQLite without internet. Offline Vision works when its local model is installed; external source links still need internet.</p></section>
+<section class="history-panel"><div class="section-head" style="margin-top:0"><div><h2>🕘 Your old search history</h2><p>Click any previous search to run it again.</p></div></div><div id="history">{%for h in history[:12]%}<a class="history-item" href="/?q={{h.query|urlencode}}&category={{h.category}}&language={{language}}"><span>{{"🎓" if h.category=="education" else "🎬"}}</span><b>{{h.query}}</b><small>{{h.created_at}}</small></a>{%else%}<p class="muted">No searches yet.</p>{%endfor%}</div></section>
+
+<section style="margin-top:38px"><div class="section-head"><div><h2>Made for you</h2><p>Recommendations based on your learned interests.</p></div><span class="badge">AI CURATED</span></div><div class="recommend-grid">{%for cat in ["education","movies"]%}<div class="recommend-card"><h3>{%if cat=="education"%}🎓 Education{%else%}🎬 Movies{%endif%}</h3>{%if recommendations[cat]%}{%for item in recommendations[cat]%}<a class="mini mini-link" href="{{url_for('content',category=cat,content_id=item.id)}}"><span><strong>{{item.title}}</strong><small>Personalized recommendation</small></span><b>{{item.score}}%</b></a>{%endfor%}{%else%}<p class="profile-sub">Search, view and like content to generate recommendations.</p>{%endif%}</div>{%endfor%}</div></section>
+</main>
+<script>
+const q=s=>document.querySelector(s);
+const form=q('#searchForm'), input=q('#q'), voice=q('#voice'), brand=q('#auravisBrand');
+form.addEventListener('submit',()=>{q('#go').disabled=true;q('#go').innerHTML='Searching…';});
+document.querySelectorAll('.quick').forEach(b=>b.addEventListener('click',()=>{input.value=b.dataset.q;input.focus();}));
+
+function startVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){input.focus();alert('Voice search works best in Chrome or Edge. Speech recognition is not available in this browser.');return;}
+  const r=new SR();
+  r.lang={en:'en-US',ta:'ta-IN',hi:'hi-IN',es:'es-ES'}[q('#language').value]||'en-US';
+  r.interimResults=false;r.maxAlternatives=1;
+  voice.classList.add('listening');
+  r.onresult=e=>{const spoken=e.results[0][0].transcript.trim(); const existing=input.value.trim(); input.value=existing&&existing.toLowerCase()!==spoken.toLowerCase()?existing+' '+spoken:spoken; const fs=q('#fusionStatus');if(fs)fs.textContent=existing?'Fused existing search + voice.':'Voice added to Search Fusion.';input.focus();};
+  r.onerror=()=>voice.classList.remove('listening');
+  r.onend=()=>voice.classList.remove('listening');
+  r.start();
+}
+voice.addEventListener('click',startVoice);
+
+brand.addEventListener('click',e=>{
+  e.preventDefault();
+  brand.classList.remove('brand-glow'); void brand.offsetWidth; brand.classList.add('brand-glow');
+  input.focus();
+  if('speechSynthesis' in window){
+    speechSynthesis.cancel();
+    const msg=new SpeechSynthesisUtterance("Hello, I'm AURAVIS. What would you like to search?");
+    msg.lang='en-US'; msg.rate=1; speechSynthesis.speak(msg);
+  }
+  setTimeout(startVoice,650);
+  setTimeout(()=>brand.classList.remove('brand-glow'),1500);
+});
+
+const image=q('#image'), imageStatus=q('#imageStatus'), imageName=q('#imageName'), preview=q('#imagePreview'), clear=q('#clearImage');
+image.addEventListener('change',async e=>{
+  const file=e.target.files[0]; if(!file)return;
+  imageName.textContent='Vision AI is analyzing '+file.name+'…'; imageStatus.hidden=false;
+  preview.src=URL.createObjectURL(file);
+  const fd=new FormData(); fd.append('image',file);
+  try{
+    const res=await fetch('/api/vision-search',{method:'POST',body:fd});
+    const data=await res.json();
+    if(!res.ok||!data.ok) throw new Error(data.error||'Vision search failed.');
+    const typed=input.value.trim();
+    const visual=(data.query||'').trim();
+    input.value=typed && visual && !typed.toLowerCase().includes(visual.toLowerCase()) ? typed+' '+visual : (typed||visual);
+    imageName.textContent=(data.engine==='offline'?'Offline Vision':'Vision')+' detected: '+visual;
+    const fs=q('#fusionStatus'); if(fs)fs.textContent=typed?'Fused text + image into one query.':'Image added to the search. Add text or voice for fusion.';
+    input.focus();
+  }catch(err){
+    imageName.textContent='Image selected • '+err.message;
+    input.focus();
+  }
+});
+clear.addEventListener('click',()=>{image.value='';preview.removeAttribute('src');imageStatus.hidden=true;imageName.textContent='';});
+const net=q('#networkState'); function networkLabel(){if(net)net.textContent=navigator.onLine?'Online • AI/API features available':'Offline • local AURAVIS search still works';} networkLabel(); addEventListener('online',networkLabel); addEventListener('offline',networkLabel);
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/service-worker.js').catch(()=>{});}
+</script>
+<script>
+(()=>{
+ const drawer=document.getElementById('learningDrawer'), backdrop=document.getElementById('drawerBackdrop');
+ if(!drawer) return;
+ const title=document.getElementById('docTitle'), body=document.getElementById('docBody');
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const close=()=>{drawer.classList.remove('open');drawer.setAttribute('aria-hidden','true');backdrop.hidden=true};
+ document.getElementById('docClose').onclick=close; backdrop.onclick=close;
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+ document.querySelectorAll('.doc-open').forEach(btn=>btn.addEventListener('click',async()=>{
+   drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');backdrop.hidden=false;title.textContent='Loading…';body.innerHTML='<p>Opening local learning document…</p>';
+   try{
+     const r=await fetch('/api/learning-document/'+encodeURIComponent(btn.dataset.docId),{headers:{'Accept':'application/json'}}); const d=await r.json(); if(!r.ok||!d.ok) throw new Error(d.error||'Document unavailable');
+     title.textContent=d.lesson.title;
+     const keys=(d.lesson.keys||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
+     const details=(d.lesson.details||[]).map(x=>'<div class="doc-topic"><h4>'+esc(x[0])+'</h4><p>'+esc(x[1])+'</p></div>').join('');
+     const formulas=(d.lesson.formulae||[]).map(x=>'<li><code>'+esc(x)+'</code></li>').join('');
+     const apps=(d.lesson.applications||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
+     const revision=(d.lesson.revision||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
+     body.innerHTML='<div class="doc-status">● AVAILABLE OFFLINE</div><div class="doc-inline-meta">'+esc(d.lesson.topic)+' • '+esc(d.lesson.level)+'</div>'+
+       '<h3>Overview</h3><p>'+esc(d.lesson.overview)+'</p>'+
+       '<h3>Core concepts</h3><ul>'+keys+'</ul>'+
+       '<h3>Detailed explanation</h3>'+details+
+       (formulas?'<h3>Key formulas / syntax</h3><ul class="doc-formulas">'+formulas+'</ul>':'')+
+       '<h3>Worked example</h3><div class="doc-example">'+esc(d.lesson.example)+'</div>'+
+       '<h3>Applications</h3><ul>'+apps+'</ul>'+
+       '<h3>Exam & revision points</h3><ul>'+revision+'</ul>'+
+       '<h3>Study guide</h3><p>'+esc(d.lesson.study)+'</p>'+
+       '<div class="doc-inline-note">Topic-aware AURAVIS document • Stored locally • Internet is not required.</div>';
+   }catch(e){title.textContent='Document unavailable';body.innerHTML='<p>'+esc(e.message)+'</p>'}
+ }));
+})();
+</script>
+<script src="{{url_for('static',filename='theme.js')}}"></script></body></html>

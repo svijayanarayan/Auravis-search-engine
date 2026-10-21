@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{item.title}} — AURAVIS</title>
+<link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+</head>
+<body>
+<header class="site-header"><a class="brand" href="/"><img src="{{url_for('static',filename='auravis-logo.svg')}}" class="brand-logo"> AURAVIS</a><nav class="nav"><a href="/">Search</a><a href="/dashboard" class="nav-pill">✦ AI Profile</a><a href="/logout">Logout</a><div class="theme-picker" title="Choose AURAVIS theme"><span class="theme-icon">🎨</span><select id="themeSelect" class="theme-select" aria-label="Choose theme"><option value="light">☀ Aurora Light</option><option value="midnight">☾ Midnight AI</option><option value="nebula">✦ Nebula</option></select></div></nav></header>
+<main class="container"><article class="detail">
+<div class="badge">{{"🎓 EDUCATION RESOURCE" if category=="education" else "🎬 MOVIE"}}</div>
+<h1>{{item.title}}</h1>
+<div class="meta">{%if category=="education"%}<span>{{item.topic}}</span><span>{{item.difficulty}}</span>{%else%}<span>{{item.genre}}</span><span>⭐ {{item.rating}}</span><span>🎥 {{item.director}}</span>{%endif%}</div>
+<p>{{item.description}}</p>
+
+{% if category=="education" %}
+<div class="embed-grid enhanced-detail">
+  <section class="embed-card video-card">
+    <h2>🎥 Video Lesson</h2>
+    {% if video %}
+      <div class="video-frame-wrap"><iframe class="video-frame" src="{{video.embed}}" title="{{video.title}}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+      <div class="video-meta"><b>{{video.title}}</b><small>{{video.channel}} · {{video.language_name}} recommendation</small></div>
+    {% else %}
+      <div class="video-offline">
+        <div class="big-icon">🎥</div>
+        <h3>Video player ready</h3>
+        {% if youtube_enabled %}<p>A video could not be loaded right now. Your local lesson remains available on this page.</p>{% else %}<p>Add a YouTube Data API key once to automatically find an embeddable learning video for every education result.</p>{% endif %}
+        <a class="button secondary-button" href="{{item.url}}" target="_blank" rel="noopener">Find video source ↗</a>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="embed-card document-card">
+    <h2>📄 AURAVIS Learning Document</h2>
+    <div class="local-document">
+      <div class="doc-status">● AVAILABLE OFFLINE</div>
+      <h3>{{lesson.title}}</h3>
+      <p class="doc-lead">{{lesson.overview}}</p>
+      <h4>What to learn</h4>
+      <ul>{% for key in lesson.get("keys", []) %}<li>{{key}}</li>{% endfor %}</ul>
+      <h4>Study guide</h4>
+      <p>{{lesson.study}}</p>
+      <div class="doc-note"><b>Level:</b> {{lesson.level}} &nbsp; • &nbsp; <b>Topic:</b> {{lesson.topic}}</div>
+    </div>
+  </section>
+</div>
+<div class="inside-source-note"><b>Everything above stays inside AURAVIS.</b> The document is generated from the local education record, so it remains readable offline. The video is embedded in this page when the YouTube API is configured and internet is available.</div>
+{% else %}
+<div class="embed-grid"><div class="embed-card"><h2>🎬 Movie Information</h2><div class="local-document"><h3>{{item.title}}</h3><p>{{item.description}}</p><p><b>Genre:</b> {{item.genre}}</p><p><b>Director:</b> {{item.director}}</p><p><b>Rating:</b> {{item.rating}}</p></div></div><div class="embed-card"><h2>🌐 Source</h2><div class="embed-placeholder"><p>External movie pages may block embedding.</p><a class="button" href="{{item.url}}" target="_blank" rel="noopener">View source ↗</a></div></div></div>
+{% endif %}
+<div class="detail-actions"><a class="button" href="/?q={{query|urlencode}}&category={{category}}">← Back to Search</a></div>
+</article></main>
+<script src="{{url_for('static',filename='theme.js')}}"></script>
+</body></html>
