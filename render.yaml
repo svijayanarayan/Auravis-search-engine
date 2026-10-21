@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: auravis-search
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: AURAVIS_SECRET_KEY
+        generateValue: true
+      - key: AURAVIS_VISION_MODE
+        value: openai
+      - key: AURAVIS_VISION_MODEL
+        value: gpt-4.1-mini
+      - key: OPENAI_API_KEY
+        sync: false

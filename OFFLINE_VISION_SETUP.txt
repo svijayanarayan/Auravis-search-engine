@@ -1,0 +1,18 @@
+AURAVIS V12.3 - OFFLINE VISION
+
+ONE-TIME SETUP (internet required only for installation/model download):
+1. Activate venv
+2. python -m pip install -r requirements.txt
+3. python download_offline_vision.py
+4. Wait until: OFFLINE VISION READY
+5. python app.py
+
+Default .env setting:
+AURAVIS_VISION_MODE=local
+
+Modes:
+local  = only local model, no OpenAI/API/network for image understanding
+hybrid = local first, OpenAI fallback
+openai = OpenAI only
+
+IMPORTANT: The model files are too large to bundle inside this ZIP. They are downloaded once and cached on your computer. After that cache exists, the local image-understanding path works offline.
